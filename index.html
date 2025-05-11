@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Technical Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #111217;
+            color: rgba(255,255,255,0.7);
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        h1 {
+            color: rgba(255,255,255,0.7) !important;
+            font-weight: 700;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .dashboard-grid {
+            display: flex;
+            gap: 32px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+            padding: 28px 24px 20px 24px;
+            min-width: 280px;
+            max-width: unset !important;
+            flex: 1 1 300px;
+            color: rgba(255,255,255,0.85);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+            margin-bottom: 24px;
+            border-top: 3px solid transparent;
+        }
+        .stat-card:hover {
+            box-shadow: 0 8px 40px 0 rgba(80,200,255,0.18), 0 2px 8px rgba(0,0,0,0.18);
+            transform: translateY(-6px) scale(1.025);
+            z-index: 2;
+        }
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .stat-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            margin-right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+        .stat-card-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.7;
+        }
+        .stat-card-arrow {
+            margin-left: auto;
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+        .stat-card-main {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .stat-card-value {
+            font-size: 2.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0.85;
+        }
+        .stat-card-rate {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.7;
+        }
+        .stat-card-rate.up { color: #3ee98a; }
+        .stat-card-rate.down { color: #ff5c75; }
+        .stat-card-chart {
+            width: 100%;
+            height: 48px;
+            margin-top: 8px;
+            position: relative;
+        }
+        .accent-blue { border-top: 3px solid #4f8cff; }
+        .accent-purple { border-top: 3px solid #a259ff; }
+        .accent-red { border-top: 3px solid #ff5c75; }
+        .price-section, .targets-section, .indicators-section, .patterns-section {
+            background: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+        }
+        .section-title {
+            color: rgba(234,255,0,0.7) !important;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .card-accent {
+            background: linear-gradient(120deg, #eaff00 0%, #00ffb8 100%);
+            color: #18191d;
+            font-weight: 700;
+        }
+        .card-title {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.7) !important;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.7) !important;
+        }
+        .card-icon {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 1.5rem;
+            color: #eaff00;
+        }
+        .card-change.positive {
+            color: rgba(0,255,184,0.7) !important;
+            font-weight: 600;
+        }
+        .card-change.negative {
+            color: rgba(255,92,117,0.7) !important;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #232323;
+            border-radius: 7px;
+            background: #18191d;
+            color: rgba(255,255,255,0.7) !important;
+            margin-top: 2px;
+            margin-bottom: 6px;
+            font-size: 0.98rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #eaff00;
+        }
+        button {
+            background: linear-gradient(90deg, #eaff00 0%, #00ffb8 100%);
+            color: #18191d;
+            padding: 9px 0;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(234,255,0,0.10);
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #00ffb8 0%, #eaff00 100%);
+        }
+        .form-group label {
+            color: rgba(255,255,255,0.7) !important;
+            font-weight: 600;
+            font-size: 0.98rem;
+        }
+        #analysisForm {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        .loading {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            padding: 24px;
+            text-align: center;
+            margin: 24px 0;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+        }
+        .error {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            padding: 24px;
+            text-align: center;
+            margin: 24px 0;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+        }
+        .targets-table, .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: rgba(255,255,255,0.7) !important;
+            font-size: 0.97rem;
+        }
+        .targets-table th, .targets-table td,
+        .products-table th, .products-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #232323;
+        }
+        .targets-table th, .products-table th {
+            background: #18191d;
+            color: rgba(234,255,0,0.7) !important;
+            font-weight: 700;
+        }
+        .indicator-card, .pattern-card {
+            background: #232323;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+            padding: 12px 10px;
+            margin: 8px 0;
+            border: 1px solid #232323;
+        }
+        .indicator-card h4, .pattern-card h4 {
+            color: rgba(234,255,0,0.7) !important;
+            margin-top: 0;
+        }
+        .strength, .bias {
+            font-weight: bold;
+        }
+        .buy { color: rgba(0,255,184,0.7) !important; }
+        .sell { color: rgba(255,92,117,0.7) !important; }
+        .neutral { color: rgba(176,179,199,0.7) !important; }
+        .interpretation {
+            margin-top: 8px;
+            font-style: italic;
+            color: rgba(255,255,255,0.7) !important;
+        }
+        #chart {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            padding: 32px;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+            height: 400px;
+        }
+        @media (max-width: 1100px) {
+            .dashboard-grid {
+                flex-direction: column;
+                gap: 18px;
+            }
+            .stat-card {
+                max-width: 100%;
+                min-width: 0;
+            }
+        }
+        .market-info {
+            background: linear-gradient(135deg, rgba(30,32,40,0.98) 80%, rgba(60,60,80,0.7) 100%);
+            border-radius: 22px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+        }
+        .market-info h3 {
+            color: #eaff00;
+            margin-bottom: 16px;
+        }
+        .market-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .market-info li {
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.7);
+        }
+        .indicators-section {
+            background-color: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            color: #fff;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .indicators-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #e0e0ff;
+            border-bottom: 1px solid #3a3a5a;
+            padding-bottom: 10px;
+        }
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .indicator-card {
+            background-color: #262640;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #3a3a5a;
+        }
+        .indicator-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            border-color: #6366f1;
+        }
+        .indicator-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #8a8aff;
+        }
+        .indicator-card p {
+            margin: 6px 0;
+            font-size: 14px;
+            color: #d1d1f0;
+        }
+        .strength, .bias {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .strength.strong {
+            background-color: #155e75;
+            color: #7dd3fc;
+        }
+        .strength.moderate {
+            background-color: #1e3a8a;
+            color: #93c5fd;
+        }
+        .strength.weak {
+            background-color: #422006;
+            color: #fdba74;
+        }
+        .bias.bullish {
+            background-color: #065f46;
+            color: #6ee7b7;
+        }
+        .bias.bearish {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+        }
+        .bias.neutral {
+            background-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .interpretation {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #3a3a5a;
+            font-style: italic;
+            color: #b4b4db;
+            line-height: 1.4;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            #analysisForm {
+                grid-template-columns: 1fr;
+                padding: 24px;
+            }
+            .stat-card {
+                min-width: 100%;
+            }
+        }
+        /* Update the results grid layout */
+        #results .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* First row: price-info, confidence-card */
+            gap: 24px;
+        }
+        #price-info {
+            grid-column: 1 / 2;
+            grid-row: 1;
+        }
+        #confidence-card {
+            grid-column: 2 / 3;
+            grid-row: 1;
+        }
+        /* Place targets, indicators, patterns in a row below */
+        #targets {
+            grid-column: 1 / 2;
+            grid-row: 2;
+        }
+        #indicators {
+            grid-column: 2 / 3;
+            grid-row: 2;
+        }
+        #patterns {
+            grid-column: 1 / 2;
+            grid-row: 3;
+        }
+        #chart {
+            grid-column: 1 / 3;
+            grid-row: 4;
+        }
+        /* For 3 cards in a row, wrap them in a flex container */
+        .cards-row {
+            display: flex;
+            gap: 24px;
+        }
+        .cards-row > div {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        /* Responsive: stack on small screens */
+        @media (max-width: 900px) {
+            #results .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            #price-info, #confidence-card, #targets, #indicators, #patterns, #chart {
+                grid-column: 1 / 2 !important;
+            }
+            .cards-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Technical Analysis</h1>
+        <div style="display: grid; grid-template-columns: 60% 40%; gap: 32px;">
+            <div class="stat-card accent-purple" style="margin-bottom: 32px; max-width: unset;">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">🌐</div>
+                    <div>
+                        <div class="stat-card-title">Market Information</div>
+                        <div class="stat-card-subtitle">Stock Symbol Formats</div>
+                    </div>
+                    <div class="stat-card-arrow">→</div>
+                </div>
+                <div style="margin-top: 18px;">
+                    <div style="margin-bottom: 12px;">
+                        <span class="stat-card-subtitle" style="color: #eaff00;">Indian Stocks:</span>
+                        <ul style="margin: 6px 0 0 18px; color: rgba(255,255,255,0.7);">
+                            <li>NSE stocks: Add <b>.NS</b> suffix (e.g., <b>TATASTEEL.NS</b>)</li>
+                            <li>BSE stocks: Add <b>.BO</b> suffix (e.g., <b>TATASTEEL.BO</b>)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="stat-card-subtitle" style="color: #eaff00;">US Stocks:</span>
+                        <ul style="margin: 6px 0 0 18px; color: rgba(255,255,255,0.7);">
+                            <li>NYSE stocks: Use symbol directly (e.g., <b>AAPL</b>)</li>
+                            <li>NASDAQ stocks: Use symbol directly (e.g., <b>GOOGL</b>)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+    
+            <form id="analysisForm" class="stat-card accent-blue" style="max-width: unset;">
+                <div class="stat-card-header">
+                    <div class="stat-card-icon">🔍</div>
+                    <div>
+                        <div class="stat-card-title">Stock Analysis</div>
+                        <div class="stat-card-subtitle">Enter Stock Details</div>
+                    </div>
+                    <div class="stat-card-arrow">→</div>
+                </div>
+    
+                <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 24px;">
+                    <div class="form-group">
+                        <label for="symbol" class="stat-card-subtitle">Stock Symbol</label>
+                        <input type="text" id="symbol" name="symbol" required 
+                               placeholder="e.g., AAPL, TATASTEEL.NS"
+                               style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="help-text" style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 4px;">
+                            Enter the stock symbol with appropriate suffix for your market
+                        </div>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="period" class="stat-card-subtitle">Data Period</label>
+                        <select id="period" name="period"
+                                style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="1d">1 Day</option>
+                            <option value="5d">5 Days</option>
+                            <option value="1mo">1 Month</option>
+                            <option value="3mo">3 Months</option>
+                            <option value="6mo" selected>6 Months</option>
+                            <option value="1y">1 Year</option>
+                            <option value="2y">2 Years</option>
+                            <option value="5y">5 Years</option>
+                            <option value="max">Maximum</option>
+                        </select>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="interval" class="stat-card-subtitle">Data Interval</label>
+                        <select id="interval" name="interval"
+                                style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="1m">1 Minute</option>
+                            <option value="2m">2 Minutes</option>
+                            <option value="5m">5 Minutes</option>
+                            <option value="15m">15 Minutes</option>
+                            <option value="30m">30 Minutes</option>
+                            <option value="60m">1 Hour</option>
+                            <option value="90m">90 Minutes</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="1d" selected>1 Day</option>
+                            <option value="5d">5 Days</option>
+                            <option value="1wk">1 Week</option>
+                            <option value="1mo">1 Month</option>
+                            <option value="3mo">3 Months</option>
+                        </select>
+                    </div>
+    
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="submit" style="
+                            background: linear-gradient(90deg, #eaff00 0%, #00ffb8 100%);
+                            color: #18191d;
+                            padding: 12px 24px;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 1rem;
+                            font-weight: 700;
+                            width: 100%;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 2px 8px rgba(234,255,0,0.10);
+                        ">
+                            Generate Analysis
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
+        <div id="loading" class="loading">
+            Generating analysis... Please wait...
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <div id="results" style="display: none;">
+            <div class="dashboard-grid">
+                <div id="price-info"></div>
+                <div id="confidence-card"></div>
+                <div class="cards-row" style="grid-column: 1 / 3;">
+                    <div id="targets"></div>
+                    <div id="indicators"></div>
+                    <div id="patterns"></div>
+                </div>
+                <div id="chart" style="grid-column: 1 / 3;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const symbol = document.getElementById('symbol').value;
+            const period = document.getElementById('period').value;
+            const interval = document.getElementById('interval').value;
+            
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.style.display = 'none';
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        symbol: symbol,
+                        period: period,
+                        interval: interval
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error('Analysis failed');
+                }
+                
+                if (data.success) {
+                    results.style.display = 'block';
+                    
+                    document.getElementById('results').innerHTML = `
+                        <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                            <div id="price-info"></div>
+                            <div id="targets"></div>
+                            <div id="indicators"></div>
+                            <div id="patterns"></div>
+                            <div id="confidence-card"></div>
+                            <div id="chart" style="grid-column: 1 / -1;"></div>
+                        </div>
+                    `;
+
+                    document.getElementById('price-info').innerHTML = `
+                        <div class="stat-card accent-blue">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon">💰</div>
+                                <div>
+                                    <div class="stat-card-title">Price Information</div>
+                                    <div class="stat-card-subtitle">Current Market Data</div>
+                                </div>
+                                <div class="stat-card-arrow">→</div>
+                            </div>
+                            <div class="stat-card-main">
+                                <div class="stat-card-value">${data.current_price.toFixed(2)}</div>
+                                <div class="stat-card-rate ${data.current_price > data.stop_loss ? 'up' : 'down'}">
+                                    Current Price
+                                </div>
+                            </div>
+                            <div class="stat-card-main" style="margin-top: 16px;">
+                                <div class="stat-card-value">${data.stop_loss ? data.stop_loss.toFixed(2) : 'N/A'}</div>
+                                <div class="stat-card-rate neutral">
+                                    Stop Loss
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('confidence-card').innerHTML = `
+                        <div class="stat-card accent-blue">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon">📈</div>
+                                <div>
+                                    <div class="stat-card-title">Overall Analysis</div>
+                                    <div class="stat-card-subtitle">Trading Recommendation</div>
+                                </div>
+                                <div class="stat-card-arrow">→</div>
+                            </div>
+                            
+                            <div class="stat-card-main" style="margin-top: 16px;">
+                                <div class="stat-card-value" style="font-size: 2.5rem;">
+                                    ${calculateOverallConfidence(data)}%
+                                </div>
+                                <div class="stat-card-rate ${calculateOverallBias(data)}">
+                                    ${calculateOverallBias(data).toUpperCase()}
+                                </div>
+                            </div>
+
+                            <div class="progress-container" style="margin-top: 20px;">
+                                <div class="progress-bar" style="
+                                    width: ${calculateOverallConfidence(data)}%;
+                                    background: ${getConfidenceColor(calculateOverallConfidence(data))};
+                                    height: 8px;
+                                    border-radius: 4px;
+                                    transition: width 0.3s ease;
+                                "></div>
+                            </div>
+
+                            <div class="interpretation" style="margin-top: 16px; font-size: 0.9rem;">
+                                ${generateRecommendation(data)}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('targets').innerHTML = `
+                        <div class="stat-card accent-purple">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon">🎯</div>
+                                <div>
+                                    <div class="stat-card-title">Price Targets</div>
+                                    <div class="stat-card-subtitle">Support & Resistance</div>
+                                </div>
+                                <div class="stat-card-arrow">→</div>
+                            </div>
+                            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                                ${data.price_targets.map(target => `
+                                    <div class="stat-card ${target.price > data.current_price ? 'accent-blue' : 'accent-red'}" 
+                                         style="min-width: 0; padding: 12px;">
+                                        <div class="stat-card-header" style="margin-bottom: 8px;">
+                                            <div class="stat-card-icon">
+                                                ${target.price > data.current_price ? '⬆️' : '⬇️'}
+                                            </div>
+                                            <div class="stat-card-title">${target.level}</div>
+                                        </div>
+                                        <div class="stat-card-main">
+                                            <div class="stat-card-value">${target.price.toFixed(2)}</div>
+                                            <div class="stat-card-rate ${target.price > data.current_price ? 'up' : 'down'}">
+                                                ${target.distance.toFixed(2)}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('indicators').innerHTML = `
+                        <div class="stat-card accent-blue">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon">📊</div>
+                                <div>
+                                    <div class="stat-card-title">Technical Indicators</div>
+                                    <div class="stat-card-subtitle">Market Analysis</div>
+                                </div>
+                                <div class="stat-card-arrow">→</div>
+                            </div>
+                            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                                ${Object.entries(data.indicators).map(([name, indicator]) => `
+                                    <div class="stat-card ${indicator.bias.toLowerCase() === 'bullish' ? 'accent-blue' : 
+                                                          indicator.bias.toLowerCase() === 'bearish' ? 'accent-red' : 
+                                                          'accent-purple'}" 
+                                         style="min-width: 0; padding: 12px;">
+                                        <div class="stat-card-header" style="margin-bottom: 8px;">
+                                            <div class="stat-card-icon">
+                                                ${name === 'Moving_Averages' ? '📈' : 
+                                                  name === 'MACD' ? '📉' : 
+                                                  name === 'RSI' ? '⚡' : 
+                                                  name === 'Bollinger_Bands' ? '🎯' : '📊'}
+                                            </div>
+                                            <div class="stat-card-title">${name.replace('_', ' ')}</div>
+                                        </div>
+                                        <div class="stat-card-main">
+                                            ${name === 'Moving_Averages' ? `
+                                                <div class="stat-card-value">${indicator.close?.toFixed(2) || 'N/A'}</div>
+                                                <div class="stat-card-rate neutral">Current Price</div>
+                                                <div style="margin-top: 8px;">
+                                                    <div class="stat-card-subtitle">SMA 20: ${indicator.sma_20?.toFixed(2) || 'N/A'}</div>
+                                                    <div class="stat-card-subtitle">SMA 50: ${indicator.sma_50?.toFixed(2) || 'N/A'}</div>
+                                                    <div class="stat-card-subtitle">SMA 200: ${indicator.sma_200 || 'N/A'}</div>
+                                                </div>
+                                            ` : name === 'MACD' ? `
+                                                <div class="stat-card-value">${indicator.value?.toFixed(2) || 'N/A'}</div>
+                                                <div class="stat-card-rate neutral">MACD Line</div>
+                                                <div style="margin-top: 8px;">
+                                                    <div class="stat-card-subtitle">Signal: ${indicator.signal?.toFixed(2) || 'N/A'}</div>
+                                                </div>
+                                            ` : `
+                                                <div class="stat-card-value">${indicator.value?.toFixed(2) || 'N/A'}</div>
+                                                <div class="stat-card-rate ${indicator.bias.toLowerCase()}">${indicator.bias}</div>
+                                            `}
+                                        </div>
+                                        <div class="stat-card-main" style="margin-top: 8px;">
+                                            <div class="stat-card-rate ${indicator.strength.toLowerCase()}">
+                                                ${indicator.bias && indicator.bias.toLowerCase() === 'bullish' ? '📈' : 
+                                                  indicator.bias && indicator.bias.toLowerCase() === 'bearish' ? '📉' : 
+                                                  indicator.bias && indicator.bias.toLowerCase() === 'neutral' ? '➖' : ''}
+                                                Strength: ${indicator.strength}
+                                            </div>
+                                        </div>
+                                        <div class="interpretation" style="margin-top: 12px; font-size: 0.9rem;">
+                                            ${indicator.interpretation}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('patterns').innerHTML = `
+                        <div class="stat-card accent-purple">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon">🎯</div>
+                                <div>
+                                    <div class="stat-card-title">Chart Patterns</div>
+                                    <div class="stat-card-subtitle">Technical Analysis</div>
+                                </div>
+                                <div class="stat-card-arrow">→</div>
+                            </div>
+                            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                                ${data.patterns.length > 0 ? data.patterns.map(pattern => `
+                                    <div class="stat-card ${pattern.confidence > 0.7 ? 'accent-blue' : 
+                                                          pattern.confidence > 0.4 ? 'accent-purple' : 
+                                                          'accent-red'}" 
+                                         style="min-width: 0; padding: 12px;">
+                                        <div class="stat-card-header" style="margin-bottom: 8px;">
+                                            <div class="stat-card-icon">
+                                                ${pattern.type.toLowerCase().includes('bull') ? '📈' : 
+                                                  pattern.type.toLowerCase().includes('bear') ? '📉' : 
+                                                  pattern.type.toLowerCase().includes('triangle') ? '🔺' : 
+                                                  pattern.type.toLowerCase().includes('flag') ? '🚩' : 
+                                                  pattern.type.toLowerCase().includes('wedge') ? '⬆️' : '📊'}
+                                            </div>
+                                            <div class="stat-card-title">${pattern.type}</div>
+                                        </div>
+                                        <div class="stat-card-main">
+                                            <div class="stat-card-value">${(pattern.confidence * 100).toFixed(1)}%</div>
+                                            <div class="stat-card-rate ${pattern.confidence > 0.7 ? 'up' : 
+                                                                      pattern.confidence > 0.4 ? 'neutral' : 
+                                                                      'down'}">
+                                                ${pattern.confidence > 0.7 ? 'Strong' : 
+                                                  pattern.confidence > 0.4 ? 'Moderate' : 
+                                                  'Weak'} Confidence
+                                            </div>
+                                        </div>
+                                        <div class="interpretation" style="margin-top: 12px; font-size: 0.9rem;">
+                                            ${pattern.description}
+                                        </div>
+                                    </div>
+                                `).join('') : `
+                                    <div class="stat-card accent-purple" style="min-width: 0; padding: 12px;">
+                                        <div class="stat-card-header" style="margin-bottom: 8px;">
+                                            <div class="stat-card-icon">🔍</div>
+                                            <div class="stat-card-title">No Patterns Detected</div>
+                                        </div>
+                                        <div class="interpretation" style="margin-top: 12px; font-size: 0.9rem;">
+                                            No significant chart patterns were identified in the current timeframe.
+                                        </div>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('chart').style.display = 'none';
+                } else {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+                
+            } catch (err) {
+                error.textContent = 'Error: ' + err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function calculateOverallConfidence(data) {
+            let confidence = 0;
+            let totalFactors = 0;
+
+            // Calculate from indicators
+            Object.values(data.indicators).forEach(indicator => {
+                if (indicator.strength) {
+                    confidence += getStrengthValue(indicator.strength);
+                    totalFactors++;
+                }
+            });
+
+            // Calculate from patterns
+            data.patterns.forEach(pattern => {
+                confidence += pattern.confidence * 100;
+                totalFactors++;
+            });
+
+            // Calculate from price targets
+            const priceTargetsConfidence = calculatePriceTargetsConfidence(data.price_targets, data.current_price);
+            confidence += priceTargetsConfidence;
+            totalFactors++;
+
+            return Math.round(confidence / totalFactors);
+        }
+
+        function getStrengthValue(strength) {
+            switch(strength.toLowerCase()) {
+                case 'strong': return 100;
+                case 'moderate': return 66;
+                case 'weak': return 33;
+                default: return 50;
+            }
+        }
+
+        function calculatePriceTargetsConfidence(targets, currentPrice) {
+            if (!targets.length) return 50;
+            
+            let confidence = 0;
+            targets.forEach(target => {
+                const distance = Math.abs(target.distance);
+                if (distance < 5) confidence += 100;
+                else if (distance < 10) confidence += 75;
+                else if (distance < 20) confidence += 50;
+                else confidence += 25;
+            });
+            
+            return confidence / targets.length;
+        }
+
+        function calculateOverallBias(data) {
+            let bullishCount = 0;
+            let bearishCount = 0;
+            let totalCount = 0;
+
+            // Count from indicators
+            Object.values(data.indicators).forEach(indicator => {
+                if (indicator.bias) {
+                    const strength = getStrengthValue(indicator.strength);
+                    if (indicator.bias.toLowerCase() === 'bullish') {
+                        bullishCount += strength;
+                    } else if (indicator.bias.toLowerCase() === 'bearish') {
+                        bearishCount += strength;
+                    }
+                    totalCount += strength;
+                }
+            });
+
+            // Count from patterns
+            data.patterns.forEach(pattern => {
+                const patternStrength = pattern.confidence * 100;
+                if (pattern.type.toLowerCase().includes('bull')) {
+                    bullishCount += patternStrength;
+                } else if (pattern.type.toLowerCase().includes('bear')) {
+                    bearishCount += patternStrength;
+                }
+                totalCount += patternStrength;
+            });
+
+            // Count from price targets
+            data.price_targets.forEach(target => {
+                const targetStrength = 50; // Base strength for price targets
+                if (target.price > data.current_price) {
+                    bullishCount += targetStrength;
+                } else {
+                    bearishCount += targetStrength;
+                }
+                totalCount += targetStrength;
+            });
+
+            // Calculate weighted bias
+            const bias = (bullishCount - bearishCount) / totalCount;
+            
+            // More sensitive thresholds
+            if (bias > 0.1) return 'bullish';
+            if (bias < -0.1) return 'bearish';
+            return 'neutral';
+        }
+
+        function getConfidenceColor(confidence) {
+            if (confidence >= 70) return '#3ee98a';
+            if (confidence >= 40) return '#eaff00';
+            return '#ff5c75';
+        }
+
+        function generateRecommendation(data) {
+            const confidence = calculateOverallConfidence(data);
+            const bias = calculateOverallBias(data);
+            
+            let recommendation = '';
+            
+            if (confidence >= 70) {
+                if (bias === 'bullish') {
+                    recommendation = 'Strong buy signal with high confidence. Consider entering long positions with appropriate stop loss.';
+                } else if (bias === 'bearish') {
+                    recommendation = 'Strong sell signal with high confidence. Consider entering short positions with appropriate stop loss.';
+                } else {
+                    recommendation = 'Strong neutral signal with high confidence. Consider waiting for clearer direction.';
+                }
+            } else if (confidence >= 40) {
+                if (bias === 'bullish') {
+                    recommendation = 'Moderate buy signal. Consider small long positions with tight stop loss.';
+                } else if (bias === 'bearish') {
+                    recommendation = 'Moderate sell signal. Consider small short positions with tight stop loss.';
+                } else {
+                    recommendation = 'Moderate neutral signal. Consider waiting for better confirmation.';
+                }
+            } else {
+                if (bias === 'bullish') {
+                    recommendation = 'Weak buy signal. Consider waiting for stronger confirmation before entering long positions.';
+                } else if (bias === 'bearish') {
+                    recommendation = 'Weak sell signal. Consider waiting for stronger confirmation before entering short positions.';
+                } else {
+                    recommendation = 'Low confidence signal. Consider waiting for better setup or stronger confirmation.';
+                }
+            }
+
+            return recommendation;
+        }
+    </script>
+</body>
+</html> 
